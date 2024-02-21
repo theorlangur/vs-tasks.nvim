@@ -119,7 +119,7 @@ local function inputs(opts)
     if input_dict["value"] ~= "" then
         add_current = " [" .. input_dict["value"] .. "] "
     end
-    local current_task = input_dict["id"] .. add_current .. " => " .. input_dict["description"]
+    local current_task = input_dict["id"] .. add_current .. " => " .. (input_dict["description"] or "")
     table.insert(inputs_formatted, current_task)
     table.insert(selection_list, input_dict)
   end
