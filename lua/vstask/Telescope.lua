@@ -163,20 +163,40 @@ local function start_launch_direction(direction, prompt_bufnr, _, selection_list
   process_command(built, direction, Term_opts)
 end
 
-local function start_task_direction(direction, promp_bufnr, _, selection_list)
-  local selection = state.get_selected_entry(promp_bufnr)
-  actions.close(promp_bufnr)
+local function run_command_impl(entry, direction, task_list)
+  local command = entry["command"]
+  local options = entry["options"]
+  local label = entry["label"]
+  local args = entry["args"]
+  local dependsOn = entry["dependsOn"]
+  if type(dependsOn) == "string" then
+    dependsOn = {[1] = dependsOn}
+  elseif type(dependsOn) ~= "table" then
+    dependsOn = {}
+  end
 
-  local command = selection_list[selection.index]["command"]
-  local options = selection_list[selection.index]["options"]
-  local label = selection_list[selection.index]["label"]
-  local args = selection_list[selection.index]["args"]
+  if task_list.task_map ~= nil then
+    for i=1,#dependsOn,1 do
+      local dep = task_list.task_map[dependsOn[i]]
+      if dep ~= nil then
+        run_command_impl(dep, nil, task_list)
+      end
+    end
+  end
+
   set_history(label, command, options)
   local formatted_command = format_command(command, options)
   if(args ~= nil) then
     formatted_command.command = Parse.Build_launch(formatted_command.command, args)
   end
   process_command(formatted_command.command, direction, Term_opts)
+end
+
+local function start_task_direction(direction, promp_bufnr, _, selection_list)
+  local selection = state.get_selected_entry(promp_bufnr)
+  actions.close(promp_bufnr)
+
+  run_command_impl(selection_list[selection.index], direction, selection_list)
 end
 
 local function history(opts)
@@ -240,11 +260,15 @@ local function tasks(opts)
   end
 
   local  tasks_formatted = {}
-
+  local task_map = {}
   for i = 1, #task_list do
     local current_task = task_list[i]["label"]
     table.insert(tasks_formatted, current_task)
+    if task_list[i] and task_list[i]["lable"] then
+      task_map[task_list[i]["lable"]] = task_list[i]
+    end
   end
+  task_list["task_map"] = task_map
 
   pickers.new(opts, {
     prompt_title = 'Tasks',
