@@ -175,9 +175,9 @@ local function run_command_impl(entry, direction, task_list)
     dependsOn = {}
   end
 
-  if task_list.task_map ~= nil then
-    for i=1,#dependsOn,1 do
-      local dep = task_list.task_map[dependsOn[i]]
+  if task_list["task_map"] ~= nil then
+    for i=1,#dependsOn do
+      local dep = task_list["task_map"][dependsOn[i]]
       if dep ~= nil then
         run_command_impl(dep, nil, task_list)
       end
@@ -264,8 +264,8 @@ local function tasks(opts)
   for i = 1, #task_list do
     local current_task = task_list[i]["label"]
     table.insert(tasks_formatted, current_task)
-    if task_list[i] and task_list[i]["lable"] then
-      task_map[task_list[i]["lable"]] = task_list[i]
+    if current_task then
+      task_map[current_task] = task_list[i]
     end
   end
   task_list["task_map"] = task_map
