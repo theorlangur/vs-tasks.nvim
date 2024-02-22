@@ -269,7 +269,7 @@ end
 local extract_variables = function(command, inputs)
   local input_vars = get_input_variables(command)
   local predefined_vars = get_predefined_variables(command)
-  local missing = {}
+  local missing_map = {}
   for _, input_var in pairs(input_vars) do
     local found = false
     for _, stored_inputs in pairs(inputs) do
@@ -277,11 +277,11 @@ local extract_variables = function(command, inputs)
         found = true
       end
     end
-    if not found then
-      table.insert(missing, input_var)
+    if not found  then
+      missing_map[input_var] = true
     end
   end
-  for _, input in pairs(missing) do
+  for input,_ in pairs(missing_map) do
     load_input_variable(input)
   end
   return input_vars, predefined_vars
