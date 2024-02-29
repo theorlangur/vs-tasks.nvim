@@ -72,6 +72,16 @@ local function set_mappings(new_mappings)
   end
 end
 
+local vstask_term_buf = -1
+local vstask_term_channel = nil
+local new_line = '\n'
+local shell = nil
+if vim.loop.os_uname().version:find('Windows') then
+  new_line = '\r'..new_line
+  shell = "cmd.exe"
+else
+  shell = "/bin/bash"
+end
 
 local process_command = function(command, direction, opts)
   last_cmd = command
@@ -88,13 +98,20 @@ local process_command = function(command, direction, opts)
 
     if command_map[opt_direction] ~= nil then
       vim.cmd(command_map[opt_direction].command)
+      vstask_term_buf = -1
       if command_map[opt_direction].size ~= nil  and size ~= nil then
         vim.cmd(command_map[opt_direction].size .. size)
       end
     end
-    vim.cmd(
-      string.format('terminal echo "%s" && %s', command, command)
-    )
+
+    if vstask_term_buf == -1 then
+      vim.cmd('belowright 10split term')
+      vstask_term_buf = vim.api.nvim_get_current_buf()
+      vstask_term_channel = vim.fn.termopen(shell)
+      vim.cmd('normal G')--lock to the end
+    end
+
+    vim.api.nvim_chan_send(vstask_term_channel, command..new_line)
   end
 end
 
