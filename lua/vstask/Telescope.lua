@@ -104,7 +104,7 @@ local process_command = function(command, direction, opts)
       end
     end
 
-    if vstask_term_buf == -1 then
+    if vim.api.nvim_buf_is_valid(vstask_term_buf) ~= true then
       vim.cmd('belowright 10split term')
       vstask_term_buf = vim.api.nvim_get_current_buf()
       vstask_term_channel = vim.fn.termopen(shell)
