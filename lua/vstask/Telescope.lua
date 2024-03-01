@@ -120,6 +120,11 @@ local function set_shell(_shell)
   shell = _shell
 end
 
+local arg_quotes = nil
+local function set_arg_quotes(_q)
+  arg_quotes = _q
+end
+
 local function inputs(opts)
   opts = opts or {}
 
@@ -177,7 +182,12 @@ local function start_launch_direction(direction, prompt_bufnr, _, selection_list
   local args = selection_list[selection.index]["args"]
   Parse.Used_launch(label)
   local formatted_command = format_command(command, options)
-  local built = Parse.Build_launch(formatted_command.command, args)
+  if(args ~= nil) then
+    for i=1,#args,1 do
+      args[i] = Parse.replace(args[i])
+    end
+  end
+  local built = Parse.Build_launch(formatted_command.command, args, arg_quotes)
   process_command(built, direction, Term_opts)
 end
 
@@ -205,7 +215,10 @@ local function run_command_impl(entry, direction, task_list)
   set_history(label, command, options)
   local formatted_command = format_command(command, options)
   if(args ~= nil) then
-    formatted_command.command = Parse.Build_launch(formatted_command.command, args)
+    for i=1,#args,1 do
+      args[i] = Parse.replace(args[i])
+    end
+    formatted_command.command = Parse.Build_launch(formatted_command.command, args, arg_quotes)
   end
   process_command(formatted_command.command, direction, Term_opts)
 end
@@ -391,6 +404,7 @@ return {
   History = history,
   Set_command_handler = set_command_handler,
   Set_shell = set_shell,
+  Set_arg_quotes = set_arg_quotes,
   Set_mappings = set_mappings,
   Set_term_opts = set_term_opts,
   Get_last = get_last,

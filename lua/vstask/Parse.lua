@@ -306,11 +306,12 @@ local function replace_vars_in_command(command)
   return command
 end
 
-local function build_launch(program, args)
+local function build_launch(program, args, quote)
   local command = program
-  for _, arg in pairs(args) do
-    command = command .. " " .. arg
-  end
+  command = command .. " "
+  if quote ~= nil then command = command .. quote end
+  command = command .. table.concat(args, ' ')
+  if quote ~= nil then command = command .. quote end
   return command
 end
 

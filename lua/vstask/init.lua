@@ -19,6 +19,10 @@ function M.setup(opts)
   end
   M.Telescope.Set_shell(opts.shell)
 
+  if opts.arg_quotes ~= nil then
+    M.Telescope.Set_arg_quotes(opts.arg_quotes)
+  end
+
   if opts.use_harpoon ~= nil and opts.use_harpoon == true then
     M.Telescope.Set_command_handler(require("vstask.Harpoon").Process)
   elseif opts.terminal ~= nil and opts.terminal == "toggleterm" then
