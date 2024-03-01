@@ -139,7 +139,7 @@ local function inputs(opts)
 
   for _, input_dict in pairs(input_list) do
     local add_current = ""
-    if input_dict["value"] ~= "" then
+    if input_dict["value"] ~= "" and input_dict["value"] ~= nil then
         add_current = " [" .. input_dict["value"] .. "] "
     end
     local current_task = input_dict["id"] .. add_current .. " => " .. (input_dict["description"] or "")

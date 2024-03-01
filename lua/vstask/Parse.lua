@@ -248,7 +248,23 @@ local function load_input_variable(input)
 
   local input_val = ""
   if inputType == "promptString" then
-    input_val = vim.fn.input(input .. "=", "")
+    local des = i["description"] or ("Enter "..input..":")
+    vim.ui.input({prompt=des}, function(inp) coroutine.resume(co, inp) end)
+  --[[
+  elseif inputType == "command" then
+    local cmd = i["command"]
+    local args = i["args"]
+    if args == nil then args = {} end
+    table.insert(args, 1, cmd)
+    local r = vim.system(args, {text=true}, 
+    function(obj) 
+      if obj.code == 0 then
+        coroutine.resume(co, obj.stdout) 
+      else
+        coroutine.resume(co) 
+      end
+    end)
+    ]]
   elseif inputType == "pickString" then
     local des = i["description"] or "Select"
     local options = i["options"]
@@ -273,8 +289,10 @@ local function load_input_variable(input)
         end
       end
     }, on_finish)
-    input_val = coroutine.yield()
+  else
+    error("Unsupported input type!")
   end
+  input_val = coroutine.yield()
 
   if input_val == "clear" then
     Inputs[input]["value"] = nil
