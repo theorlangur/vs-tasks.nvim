@@ -58,7 +58,7 @@ local function setContains(set, key)
 end
 
 local function get_inputs()
-  if Inputs ~= nil then
+  if Inputs ~= nil and #Inputs > 0 then
     return Inputs
   end
   local path = vim.fn.getcwd() .. "/" .. config_dir .. "/tasks.json"
@@ -237,7 +237,45 @@ local function get_input_variables(command)
 end
 
 local function load_input_variable(input)
-  local input_val = vim.fn.input(input .. "=", "")
+  local i = Inputs[input]
+  local inputType = i["type"]
+  if inputType == nil then inputType="promptString" end
+
+  local co = coroutine.running()
+  if co == nil then
+    error("User input is an async operation and must be run from a coroutine!")
+  end
+
+  local input_val = ""
+  if inputType == "promptString" then
+    input_val = vim.fn.input(input .. "=", "")
+  elseif inputType == "pickString" then
+    local des = i["description"] or "Select"
+    local options = i["options"]
+    local on_finish = function(choice)
+      local r = nil
+      if choice ~= nil then
+         if type(choice) == "table" then
+           r = choice.value
+         else
+           r = choice
+         end
+      end
+      coroutine.resume(co, r)
+    end
+    vim.ui.select(options,{
+      prompt=des,
+      format_item=function(item)
+        if type(item) == "table" then
+          return item["label"]
+        else
+          return tostring(item)
+        end
+      end
+    }, on_finish)
+    input_val = coroutine.yield()
+  end
+
   if input_val == "clear" then
     Inputs[input]["value"] = nil
   else
@@ -273,7 +311,7 @@ local extract_variables = function(command, inputs)
   for _, input_var in pairs(input_vars) do
     local found = false
     for _, stored_inputs in pairs(inputs) do
-      if stored_inputs["id"] == input_var and stored_inputs["value"] ~= "" then
+      if stored_inputs["id"] == input_var and stored_inputs["value"] ~= "" and stored_inputs["value"] ~= nil then
         found = true
       end
     end

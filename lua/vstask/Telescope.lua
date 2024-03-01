@@ -160,7 +160,8 @@ local function inputs(opts)
         actions.close(prompt_bufnr)
 
         local input = selection_list[selection.index]["id"]
-        Parse.Set(input)
+        local co = coroutine.create(function() Parse.Set(input) end)
+        coroutine.resume(co)
       end
 
 
@@ -227,7 +228,8 @@ local function start_task_direction(direction, promp_bufnr, _, selection_list)
   local selection = state.get_selected_entry(promp_bufnr)
   actions.close(promp_bufnr)
 
-  run_command_impl(selection_list[selection.index], direction, selection_list)
+  local co = coroutine.create(function() run_command_impl(selection_list[selection.index], direction, selection_list) end)
+  coroutine.resume(co)
 end
 
 local function history(opts)
@@ -366,22 +368,34 @@ local function launches(opts)
     attach_mappings = function(prompt_bufnr, map)
 
       local start_task = function()
-        start_launch_direction('current', prompt_bufnr, map, launch_list)
+        local co = coroutine.create(function() 
+          start_launch_direction('current', prompt_bufnr, map, launch_list) 
+        end)
+        coroutine.resume(co)
       end
 
       local start_in_vert = function()
-        start_launch_direction('vertical', prompt_bufnr, map, launch_list)
-        vim.cmd('normal! G')
+        local co = coroutine.create(function() 
+          start_launch_direction('vertical', prompt_bufnr, map, launch_list) 
+          vim.cmd('normal! G')
+        end)
+        coroutine.resume(co)
       end
 
       local start_in_split = function()
-        start_launch_direction('horizontal', prompt_bufnr, map, launch_list)
-        vim.cmd('normal! G')
+        local co = coroutine.create(function() 
+          start_launch_direction('horizontal', prompt_bufnr, map, launch_list) 
+          vim.cmd('normal! G')
+        end)
+        coroutine.resume(co)
       end
 
       local start_in_tab = function()
-        start_launch_direction('tab', prompt_bufnr, map, launch_list)
-        vim.cmd('normal! G')
+        local co = coroutine.create(function() 
+          start_launch_direction('tab', prompt_bufnr, map, launch_list) 
+          vim.cmd('normal! G')
+        end)
+        coroutine.resume(co)
       end
 
       map('i', Mappings.current, start_task)
