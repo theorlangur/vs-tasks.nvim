@@ -10,6 +10,15 @@ function M.setup(opts)
   if opts == nil then
     return
   end
+  if opts.shell == nil then
+    if vim.loop.os_uname().version:find('Windows') then
+      opts.shell = "cmd.exe"
+    else
+      opts.shell = "/bin/bash"
+    end
+  end
+  M.Telescope.Set_shell(opts.shell)
+
   if opts.use_harpoon ~= nil and opts.use_harpoon == true then
     M.Telescope.Set_command_handler(require("vstask.Harpoon").Process)
   elseif opts.terminal ~= nil and opts.terminal == "toggleterm" then

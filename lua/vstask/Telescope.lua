@@ -78,9 +78,6 @@ local new_line = '\n'
 local shell = nil
 if vim.loop.os_uname().version:find('Windows') then
   new_line = '\r'..new_line
-  shell = "cmd.exe"
-else
-  shell = "/bin/bash"
 end
 
 local process_command = function(command, direction, opts)
@@ -117,6 +114,10 @@ end
 
 local function set_command_handler(handler)
   Command_handler = handler
+end
+
+local function set_shell(_shell)
+  shell = _shell
 end
 
 local function inputs(opts)
@@ -389,6 +390,7 @@ return {
   Inputs = inputs,
   History = history,
   Set_command_handler = set_command_handler,
+  Set_shell = set_shell,
   Set_mappings = set_mappings,
   Set_term_opts = set_term_opts,
   Get_last = get_last,
