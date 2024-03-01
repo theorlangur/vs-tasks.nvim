@@ -8,7 +8,7 @@ local Opts = require('vstask.Opts')
 local Command_handler = nil
 local Mappings = {
   vertical = '<C-v>',
-  split = '<C-p>',
+  split = '<C-h>',
   tab = '<C-t>',
   current = '<CR>'
 }
