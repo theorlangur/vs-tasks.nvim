@@ -351,12 +351,9 @@ local function replace_vars_in_command(command)
   return command
 end
 
-local function build_launch(program, args, quote)
+local function build_launch(program, args)
   local command = program
-  command = command .. " "
-  if quote ~= nil then command = command .. quote end
-  command = command .. table.concat(args, ' ')
-  if quote ~= nil then command = command .. quote end
+  command = command .. " " .. table.concat(args, ' ')
   return command
 end
 
