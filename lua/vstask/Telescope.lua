@@ -169,11 +169,13 @@ local function inputs(opts)
 end
 
 local function prepare_args(cargs)
-    for i=1,#cargs,1 do
-      local a = Parse.replace(cargs[i])
-      if a:find(" ") ~= nil then a = "'"..a.."'" end
-      cargs[i] = a
-    end
+  local r = {}
+  for i=1,#cargs,1 do
+    local a = Parse.replace(cargs[i])
+    if a:find(" ") ~= nil then a = "'"..a.."'" end
+    r[i] = a
+  end
+  return r
 end
 
 local function start_launch_direction(direction, prompt_bufnr, _, selection_list)
@@ -186,7 +188,7 @@ local function start_launch_direction(direction, prompt_bufnr, _, selection_list
   local args = selection_list[selection.index]["args"]
   Parse.Used_launch(label)
   local formatted_command = format_command(command, options)
-  if(args ~= nil) then prepare_args(args) end
+  if(args ~= nil) then args = prepare_args(args) end
   local built = Parse.Build_launch(formatted_command.command, args)
   process_command(built, direction, Term_opts)
 end
@@ -215,7 +217,7 @@ local function run_command_impl(entry, direction, task_list)
   set_history(label, command, options)
   local formatted_command = format_command(command, options)
   if(args ~= nil) then
-    prepare_args(args)
+    args = prepare_args(args)
     formatted_command.command = Parse.Build_launch(formatted_command.command, args)
   end
   process_command(formatted_command.command, direction, Term_opts)
