@@ -53,6 +53,31 @@ local function file_exists(name)
   end
 end
 
+local function get_default_for_input(input_entry)
+  local d = input_entry["default"]
+  if d then
+    if input_entry["type"] == "pickString" then
+      local opts = input_entry["options"]
+      if opts and type(opts[1]) == "table" then
+        local label_value_d = nil
+        for i=1,#opts,1 do
+          local e = opts[i]
+          if e.value == d then
+            return d
+          elseif e.label == d then
+            label_value_d = e.value
+          end
+        end
+        if label_value_d then
+          return label_value_d
+        end
+      end
+    end
+    return d
+  end
+  return nil
+end
+
 local function setContains(set, key)
     return set[key] ~= nil
 end
@@ -77,7 +102,7 @@ local function get_inputs()
     if Inputs[input_dict["id"]] == nil then
       Inputs[input_dict["id"]] = input_dict
       if Inputs[input_dict["id"]] == nil or Inputs[input_dict["id"]]["value"] == nil then
-        Inputs[input_dict["id"]]["value"] = input_dict["default"]
+        Inputs[input_dict["id"]]["value"] = get_default_for_input(input_dict)
       end
     end
   end
@@ -376,6 +401,7 @@ end
 return {
   replace = replace_vars_in_command,
   Inputs = get_inputs,
+  Get_default_for_input = get_default_for_input,
   Tasks = get_tasks,
   Launches = get_launches,
   Set = load_input_variable,

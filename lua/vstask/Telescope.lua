@@ -131,8 +131,8 @@ local function clear_inputs(opts)
 
   for _, input_dict in pairs(input_list) do
     if input_dict["value"] ~= "" and input_dict["value"] ~= nil then
-      if opts.reset_to_default == true and input_dict["default"] then
-        input_dict["value"] = input_dict["default"]
+      if opts.reset_to_default == true then
+        input_dict["value"] = Parse.Get_default_for_input(input_dict)
       else
         input_dict["value"] = nil
       end
