@@ -120,6 +120,26 @@ local function set_shell(_shell)
   shell = _shell
 end
 
+local function clear_inputs(opts)
+  opts = opts or {}
+
+  local input_list = Parse.Inputs()
+
+  if vim.tbl_isempty(input_list) then
+    return
+  end
+
+  for _, input_dict in pairs(input_list) do
+    if input_dict["value"] ~= "" and input_dict["value"] ~= nil then
+      if opts.reset_to_default == true and input_dict["default"] then
+        input_dict["value"] = input_dict["default"]
+      else
+        input_dict["value"] = nil
+      end
+    end
+  end
+end
+
 local function inputs(opts)
   opts = opts or {}
 
@@ -414,6 +434,7 @@ return {
   Launch = launches,
   Tasks = tasks,
   Inputs = inputs,
+  Clear_inputs = clear_inputs,
   History = history,
   Set_command_handler = set_command_handler,
   Set_shell = set_shell,
