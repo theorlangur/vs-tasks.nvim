@@ -336,7 +336,8 @@ local function get_predefined_variables(command)
   return predefined_vars, count
 end
 
-local extract_variables = function(command, inputs)
+---@param opts? {clean:boolean}
+local extract_variables = function(command, inputs, opts)
   local input_vars = get_input_variables(command)
   local predefined_vars = get_predefined_variables(command)
   local missing_map = {}
@@ -347,7 +348,7 @@ local extract_variables = function(command, inputs)
         found = true
       end
     end
-    if not found  then
+    if not found or (opts and opts.clean == true)  then
       missing_map[input_var] = true
     end
   end
@@ -357,9 +358,10 @@ local extract_variables = function(command, inputs)
   return input_vars, predefined_vars
 end
 
-local function replace_vars_in_command(command)
+---@param opts? {clean:boolean}
+local function replace_vars_in_command(command, opts)
   local inputs = get_inputs()
-  local input_vars, predefined_vars = extract_variables(command, inputs)
+  local input_vars, predefined_vars = extract_variables(command, inputs, opts)
   for _, replacing in pairs(input_vars) do
     local replace_pattern = "${input:" .. replacing .. "}"
     local replace = get_input_variable(replacing, inputs)

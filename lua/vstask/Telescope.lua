@@ -10,7 +10,8 @@ local Mappings = {
   vertical = '<C-v>',
   split = '<C-h>',
   tab = '<C-t>',
-  current = '<CR>'
+  current = '<CR>',
+  current_input_clean = '<C-j>'
 }
 
 local command_history = {}
@@ -39,7 +40,8 @@ local function get_last()
   return last_cmd
 end
 
-local function format_command(pre, options)
+---@param opts? {clean:boolean}
+local function format_command(pre, options, opts)
   local command = pre
   if nil ~= options then
       local cwd = options["cwd"]
@@ -48,7 +50,7 @@ local function format_command(pre, options)
           command = string.format("%s && %s", cd_command, command)
       end
   end
-  command = Parse.replace(command)
+  command = Parse.replace(command, opts)
   return {
     pre = pre,
     command = command,
@@ -188,17 +190,19 @@ local function inputs(opts)
   }):find()
 end
 
-local function prepare_args(cargs)
+---@param opts? {clean:boolean}
+local function prepare_args(cargs, opts)
   local r = {}
   for i=1,#cargs,1 do
-    local a = Parse.replace(cargs[i])
+    local a = Parse.replace(cargs[i], opts)
     if a:find(" ") ~= nil then a = "'"..a.."'" end
     r[i] = a
   end
   return r
 end
 
-local function start_launch_direction(direction, prompt_bufnr, _, selection_list)
+---@param opts? {clean:boolean}
+local function start_launch_direction(direction, prompt_bufnr, _, selection_list, opts)
   local selection = state.get_selected_entry(prompt_bufnr)
   actions.close(prompt_bufnr)
 
@@ -207,13 +211,14 @@ local function start_launch_direction(direction, prompt_bufnr, _, selection_list
   local label = selection_list[selection.index]["name"]
   local args = selection_list[selection.index]["args"]
   Parse.Used_launch(label)
-  local formatted_command = format_command(command, options)
-  if(args ~= nil) then args = prepare_args(args) end
+  local formatted_command = format_command(command, options, opts)
+  if(args ~= nil) then args = prepare_args(args, opts) end
   local built = Parse.Build_launch(formatted_command.command, args)
   process_command(built, direction, Term_opts)
 end
 
-local function run_command_impl(entry, direction, task_list)
+---@param opts? {clean:boolean}
+local function run_command_impl(entry, direction, task_list, opts)
   local command = entry["command"]
   local options = entry["options"]
   local label = entry["label"]
@@ -235,19 +240,20 @@ local function run_command_impl(entry, direction, task_list)
   end
 
   set_history(label, command, options)
-  local formatted_command = format_command(command, options)
+  local formatted_command = format_command(command, options, opts)
   if(args ~= nil) then
-    args = prepare_args(args)
+    args = prepare_args(args, opts)
     formatted_command.command = Parse.Build_launch(formatted_command.command, args)
   end
   process_command(formatted_command.command, direction, Term_opts)
 end
 
-local function start_task_direction(direction, promp_bufnr, _, selection_list)
+---@param opts? {clean:boolean}
+local function start_task_direction(direction, promp_bufnr, _, selection_list, opts)
   local selection = state.get_selected_entry(promp_bufnr)
   actions.close(promp_bufnr)
 
-  local co = coroutine.create(function() run_command_impl(selection_list[selection.index], direction, selection_list) end)
+  local co = coroutine.create(function() run_command_impl(selection_list[selection.index], direction, selection_list, opts) end)
   coroutine.resume(co)
 end
 
@@ -334,6 +340,10 @@ local function tasks(opts)
         start_task_direction('current', prompt_bufnr, map, task_list)
       end
 
+      local start_task_clean = function()
+        start_task_direction('current', prompt_bufnr, map, task_list, {clean=true})
+      end
+
       local start_in_vert = function()
         start_task_direction('vertical', prompt_bufnr, map, task_list)
         vim.cmd('normal! G')
@@ -351,6 +361,8 @@ local function tasks(opts)
 
       map('i', Mappings.current, start_task)
       map('n', Mappings.current, start_task)
+      map('i', Mappings.current_input_clean, start_task_clean)
+      map('n', Mappings.current_input_clean, start_task_clean)
       map('i', Mappings.vertical, start_in_vert)
       map('n', Mappings.vertical, start_in_vert)
       map('i', Mappings.split, start_in_split)
