@@ -214,7 +214,12 @@ local function start_launch_direction(direction, prompt_bufnr, _, selection_list
   local formatted_command = format_command(command, options, opts)
   if(args ~= nil) then args = prepare_args(args, opts) end
   local built = Parse.Build_launch(formatted_command.command, args)
-  process_command(built, direction, Term_opts)
+  if options and options["detached"] == true then
+    -- vim.print(shell.." -c \""..built.."\"")
+    os.execute(built)
+  else
+    process_command(built, direction, Term_opts)
+  end
 end
 
 ---@param opts? {clean:boolean}
@@ -245,7 +250,14 @@ local function run_command_impl(entry, direction, task_list, opts)
     args = prepare_args(args, opts)
     formatted_command.command = Parse.Build_launch(formatted_command.command, args)
   end
-  process_command(formatted_command.command, direction, Term_opts)
+
+  if options and options["detached"] == true then
+    local built = formatted_command.command
+    -- vim.print(shell.." -c \""..built.."\"")
+    os.execute(built)
+  else
+    process_command(formatted_command.command, direction, Term_opts)
+  end
 end
 
 ---@param opts? {clean:boolean}
