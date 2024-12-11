@@ -260,6 +260,16 @@ local function get_input_variables(command)
   return input_variables, count
 end
 
+local function get_env_variables(command)
+  local env_variables = {}
+  local count = 0
+  for w in string.gmatch(command, "${env:([^}]*)}") do
+    table.insert(env_variables, w)
+    count = count + 1
+  end
+  return env_variables, count
+end
+
 local function load_input_variable(input)
   local i = Inputs[input]
   local inputType = i["type"]
@@ -365,6 +375,13 @@ local function replace_vars_in_command(command, opts)
   for _, replacing in pairs(input_vars) do
     local replace_pattern = "${input:" .. replacing .. "}"
     local replace = get_input_variable(replacing, inputs)
+    command = string.gsub(command, replace_pattern, replace)
+  end
+
+  local env_vars = get_env_variables(command)
+  for _, replacing in pairs(env_vars) do
+    local replace_pattern = "${env:" .. replacing .. "}"
+    local replace = os.getenv(replacing)
     command = string.gsub(command, replace_pattern, replace)
   end
 
